@@ -1,6 +1,53 @@
 "use client";
 import { Box, Stack, TextField, Button, Typography } from "@mui/material";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+
+import PropTypes from 'prop-types';
+import { styled } from '@mui/material/styles';
+import Rating from '@mui/material/Rating';
+import SentimentVeryDissatisfiedIcon from '@mui/icons-material/SentimentVeryDissatisfied';
+import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
+import SentimentSatisfiedIcon from '@mui/icons-material/SentimentSatisfied';
+import SentimentSatisfiedAltIcon from '@mui/icons-material/SentimentSatisfiedAltOutlined';
+import SentimentVerySatisfiedIcon from '@mui/icons-material/SentimentVerySatisfied';
+
+const StyledRating = styled(Rating)(({ theme }) => ({
+  '& .MuiRating-iconEmpty .MuiSvgIcon-root': {
+    color: theme.palette.action.disabled,
+  },
+}));
+
+const customIcons = {
+  1: {
+    icon: <SentimentVeryDissatisfiedIcon color="error" />,
+    label: 'Very Dissatisfied',
+  },
+  2: {
+    icon: <SentimentDissatisfiedIcon color="error" />,
+    label: 'Dissatisfied',
+  },
+  3: {
+    icon: <SentimentSatisfiedIcon color="warning" />,
+    label: 'Neutral',
+  },
+  4: {
+    icon: <SentimentSatisfiedAltIcon color="success" />,
+    label: 'Satisfied',
+  },
+  5: {
+    icon: <SentimentVerySatisfiedIcon color="success" />,
+    label: 'Very Satisfied',
+  },
+};
+
+function IconContainer(props) {
+  const { value, ...other } = props;
+  return <span {...other}>{customIcons[value].icon}</span>;
+}
+
+IconContainer.propTypes = {
+  value: PropTypes.number.isRequired,
+};
 
 export default function Home() {
   const { GoogleGenerativeAI } = require("@google/generative-ai");
@@ -22,6 +69,7 @@ export default function Home() {
   ]);
 
   const [message, setMessage] = useState("");
+  const scrollRef = useRef(null);
 
   const sendMessage = async (e) => {
     e.preventDefault();
@@ -62,6 +110,7 @@ export default function Home() {
       ];
     });
   };
+
   /*
   const sendMessage = async () => {
     setMessage('')
@@ -104,9 +153,16 @@ export default function Home() {
 
   }
 */
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
   return (
     <Box
       bgcolor="#d1eeee"
+      sx={{background: 'linear-gradient(to bottom, #d1eeee, #2986cc)'}}
       height="100vh"
       width="100vw"
       display="flex"
@@ -114,7 +170,7 @@ export default function Home() {
       justifyContent="center"
       alignItems="center"
     >
-      <Typography fontSize="34px" fontWeight="bold">
+      <Typography fontSize="34px" fontWeight="bold" color="white" sx={{background: 'linear-gradient(to right bottom, #9440a0, #2986cc)'}} borderRadius={8} p={2} marginTop={2}>
         AI Customer Support
       </Typography>
       <Box
@@ -128,9 +184,10 @@ export default function Home() {
         <Stack
           bgcolor="#d8e8e8"
           direction="column"
-          width="600px"
-          height="500px"
-          border="1px solid black"
+          sx={{ width: { xs: "80%", sm: "65%", md: "50%" }, }}
+          height="90%"
+          border="2px solid #19527d"
+          borderRadius={2}
           p={2}
           spacing={2}
         >
@@ -140,7 +197,7 @@ export default function Home() {
             flexGrow={1}
             overflow="auto"
             maxHeight="100%"
-            p={2}
+            p={1}
           >
             {messages.map((message, index) => (
               <Box
@@ -151,12 +208,11 @@ export default function Home() {
                 }
               >
                 <Box
-                  bgcolor={
-                    message.role === "model" ? "primary.main" : "secondary.main"
-                  }
+                  sx={{background: message.role === "model" ? 'linear-gradient(to right, #2986cc, #19527d)' : 'linear-gradient(to left, #9440a0, #674ea7)'}}
                   color="white"
                   borderRadius={6}
                   p={2}
+                  ref={scrollRef}
                 >
                   {message.content}
                 </Box>
@@ -189,6 +245,14 @@ export default function Home() {
             </Button>
           </form>
         </Stack>
+        <StyledRating
+          display="flex"
+          name="highlight-selected-only"
+          defaultValue={3}
+          IconContainerComponent={IconContainer}
+          getLabelText={(value) => customIcons[value].label}
+          highlightSelectedOnly
+        />
       </Box>
     </Box>
   );
