@@ -1,12 +1,14 @@
 'use client';
 import Image from "next/image";
-import { Box, Stack, TextField, Button } from "@mui/material";
-import { useState } from "react";
+import { Box, Stack, TextField, Button, Typography } from "@mui/material";
+import { useState, useRef, useEffect } from "react";
 
 export default function Home() {
 	const { GoogleGenerativeAI } = require("@google/generative-ai")
 
 	const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY)
+
+	const messagesEndRef = useRef(null);
 
 	const model = genAI.getGenerativeModel({
 		model: "gemini-1.5-flash",
@@ -92,23 +94,32 @@ export default function Home() {
 
   }
 */
+	// Scroll to the bottom of the container
+	useEffect(() => {
+		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+	}, [messages]);
+
 	return(
-		<Box width = "100vw" height = "100vh" display = "flex" flexDirection="column" justifyContent = "center" alignItems = "center">
-			<Stack direction="column" width = "600px" height = "700px" border = "1px solid black" p = {2} spacing={2}>
-				<Stack direction="column" spacing = {2} flexGrow = {1} overflow = "auto" maxHeight = "100%">
+		<Box width = "100vw" height = "100vh" display = "flex" flexDirection="column" justifyContent = "center" alignItems = "center" p={2} bgcolor = "#3F4B75" overflow="hidden">
+			<Stack direction="column" width = "60%" height = "100%" border = "1px solid black" p = {3} spacing={2} bgcolor = "white" borderRadius = {4}>
+				<Box borderBottom = {2}>
+					<Typography variant = "h3">Headstarter Chatbot</Typography>
+				</Box>
+				<Stack direction="column" spacing = {2} flexGrow = {1} overflow = "auto" maxHeight = "90%" ref={messagesEndRef}>
 					{messages.map((message, index) => (
 						<Box key = {index} display = "flex" justifyContent= { message.role === "model" ? "flex-start" : "flex-end" }>
-							<Box bgcolor={ message.role === "model" ? "primary.main" : "secondary.main" } color = "white" borderRadius = {16} p = {3}>
+							<Box bgcolor={ message.role === "model" ? "primary.light" : "primary.dark" } color = "white" borderRadius = {16}  p = {2}>
 								{message.content}
 							</Box>
 						</Box>
 						)
 					)}
+					<div ref={messagesEndRef} />
 
 				</Stack>
 
 				<Stack>
-					<TextField label = "Message" fullWidth value = {message} onChange = {(e) => setMessage(e.target.value)} />
+					<TextField label = "Message" fullWidth value = {message} onChange = {(e) => setMessage(e.target.value)} onKeyDown={(e) => e.key === "Enter" && sendMessage()}/>
 					<Button variant="contained" onClick={sendMessage}>Send</Button>
 				</Stack>
 			</Stack>
