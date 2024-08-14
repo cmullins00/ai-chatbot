@@ -54,28 +54,11 @@ export default function Home() {
 
   const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
 
-  const prompt = "You are an AI customer support assistant for HeadstarterAI, a platform that conducts AI-powered interviews for software engineering jobs. Your primary role is to assist users with questions about the platform, troubleshoot issues, and provide guidance on using HeadstarterAI effectively. Key responsibilities: Answer questions about HeadstarterAI's features, pricing, and interview process. Assist users with account-related issues, such as registration, login problems, and subscription management. Provide technical support for any platform-related issues users may encounter during their interviews. Offer guidance on how to prepare for AI-powered interviews and make the most of the HeadstarterAI platform. Explain the benefits of using HeadstarterAI for both job seekers and employers. Address concerns about AI bias, data privacy, and the fairness of AI-powered interviews. Collect user feedback and suggestions for improving the platform. Guidelines: Always maintain a professional, friendly, and helpful tone. Provide clear and concise answers, offering to elaborate when necessary. If you don't have an answer, admit it and offer to escalate the issue to human support. Use simple language and avoid technical jargon unless specifically asked about technical details. Respect user privacy and never ask for sensitive information like passwords or payment details. Encourage users to visit the HeadstarterAI website or documentation for in-depth information on specific topics. If users express frustration, empathize with their situation and focus on finding solutions. Remember, your goal is to ensure users have a positive experience with HeadstarterAI and feel supported throughout their journey on the platform. Do not put your responses in JSON format."
-
-  const english = genAI.getGenerativeModel({
+  const model = genAI.getGenerativeModel({
     model: "gemini-1.5-flash",
-    systemInstruction: prompt + " Please speak in English."
+    systemInstruction:
+      "You are an AI customer support assistant for HeadstarterAI, a platform that conducts AI-powered interviews for software engineering jobs. Your primary role is to assist users with questions about the platform, troubleshoot issues, and provide guidance on using HeadstarterAI effectively. Key responsibilities: Answer questions about HeadstarterAI's features, pricing, and interview process. Assist users with account-related issues, such as registration, login problems, and subscription management. Provide technical support for any platform-related issues users may encounter during their interviews. Offer guidance on how to prepare for AI-powered interviews and make the most of the HeadstarterAI platform. Explain the benefits of using HeadstarterAI for both job seekers and employers. Address concerns about AI bias, data privacy, and the fairness of AI-powered interviews. Collect user feedback and suggestions for improving the platform. Guidelines: Always maintain a professional, friendly, and helpful tone. Provide clear and concise answers, offering to elaborate when necessary. If you don't have an answer, admit it and offer to escalate the issue to human support. Use simple language and avoid technical jargon unless specifically asked about technical details. Respect user privacy and never ask for sensitive information like passwords or payment details. Encourage users to visit the HeadstarterAI website or documentation for in-depth information on specific topics. If users express frustration, empathize with their situation and focus on finding solutions. Remember, your goal is to ensure users have a positive experience with HeadstarterAI and feel supported throughout their journey on the platform.",
   });
-
-  const spanish = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: prompt + " Please speak in Spanish."
-  });
-
-  const french = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: prompt + " Please speak in French."
-  });
-
-  const [model, setModel] = useState(english)
-
-  const changeLanguage = (language) => {
-    setModel(language)
-  }
 
   const [messages, setMessages] = useState([
     {
@@ -101,9 +84,9 @@ export default function Home() {
       JSON.stringify([...messages, { role: "user", content: message }])
     );
 
-    const response = result.response.text()
-    console.log(response)
-    /*
+    console.log(typeof result);
+    console.log(typeof result.response);
+
     const res = await result.response.text();
     const parsedRes = JSON.parse(res);
 
@@ -113,7 +96,7 @@ export default function Home() {
     } else {
       response = parsedRes.content;
     }
-    */
+
     setMessages((messages) => {
       //let lastMessage = messages[messages.length - 1]
       let otherMessages = messages.slice(0, messages.length - 1);
@@ -128,6 +111,48 @@ export default function Home() {
     });
   };
 
+  /*
+  const sendMessage = async () => {
+    setMessage('')
+    setMessages((messages) =>[
+      ...messages,
+      {role: "user", content: message},
+      {role: "assistant", content: "..."}
+    ])
+
+    const response = fetch('/api/chat', {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify([...messages, {role: "user", content: message}]),
+    }).then( async (res)=>{
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+
+      let result = ''
+      return reader.read().then(function processText({done, value}) {
+        if (done) {
+          return result
+        }
+        const text = decoder.decode(value || new Int8Array(), {stream: true})
+        setMessages((messages) => {
+          let lastMessage = messages[messages.length - 1]
+          let otherMessages = messages.slice(0, messages.length-1)
+          return [
+            ...otherMessages,
+            {
+              ...lastMessage,
+              content: lastMessage.content + text
+            },
+          ]
+        })
+        return reader.read().then(processText)
+      })
+    })
+
+  }
+*/
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -144,26 +169,7 @@ export default function Home() {
       flexDirection="column"
       justifyContent="center"
       alignItems="center"
-      position="relative"
     >
-      <Box
-        position="absolute"
-        top="2%"
-        right="2%"
-        display="flex"
-	flexDirection="column"
-        gap={2}
-      >
-        <Button variant="contained" sx={{ width: "100px" }} onClick={() => {changeLanguage(english)}}>
-          English
-        </Button>
-        <Button variant="contained" sx={{ width: "100px" }} onClick={() => {changeLanguage(spanish)}}>
-          Español
-        </Button>
-        <Button variant="contained" sx={{ width: "100px" }} onClick={() => {changeLanguage(french)}}>
-          Français
-        </Button>
-      </Box>
       <Typography fontSize="34px" fontWeight="bold" color="white" sx={{background: 'linear-gradient(to right bottom, #9440a0, #2986cc)'}} borderRadius={8} p={2} marginTop={2}>
         AI Customer Support
       </Typography>
